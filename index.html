@@ -48,7 +48,6 @@
         const hardcoreSlangs = ["fuck", "cunt", "dick", "cock", "bitch", "whore", "slut"];
         const regularSlangs = ["clit", "pussy", "penis", "peni", "suck", "ass", "asshole", "twat", "wank", "prick"];
         const kindWordsList = ["love", "life", "free", "kind", "wise", "true", "safe", "good", "care", "hope", "pure", "warm", "soft", "help", "gift", "calm", "dear", "fair", "fine", "glad", "holy", "noble", "smart", "smile", "sweet", "trust", "brave", "charm", "cheer"];
-        
         let scrabbleDictionary = [];
         let isDbLoaded = false;
 
@@ -60,19 +59,19 @@
                 isDbLoaded = true;
                 console.log("300,000+ Word Bank Active!");
             } catch (e) {
-                scrabbleDictionary = ["site", "item", "time", "game", "test", "step", "love", "life", "bench", "bough", "chief", "gecko", "back", "bang", "bare", "cafe", "face", "fake", "cake"];
+                scrabbleDictionary = ["site", "item", "time", "game", "test", "step", "love", "life", "bench", "bough", "chief", "gecko", "back", "bang", "bare", "cafe", "face", "fake", "cake", "bird", "boubou", "gobo", "vugh", "yogh", "asshole", "pussy", "fuck"];
                 isDbLoaded = true;
             }
         }
 
         function findAnagramMatches(inputStr, len) {
             let counts = {};
-            for (let i = 0; i < inputStr.length; i++) { var char = inputStr[i]; counts[char] = (counts[char] || 0) + 1; }
+            for (let i = 0; i < inputStr.length; i++) { let char = inputStr[i]; counts[char] = (counts[char] || 0) + 1; }
             return scrabbleDictionary.filter(w => {
                 if (w.length !== len) return false;
                 const wordCount = {};
                 for (let j = 0; j < w.length; j++) {
-                    var char = word[j]; wordCount[char] = (wordCount[char] || 0) + 1;
+                    let char = w[j]; wordCount[char] = (wordCount[char] || 0) + 1;
                     if (!counts[char] || wordCount[char] > counts[char]) return false;
                 }
                 return true;
@@ -81,33 +80,29 @@
 
         function detectAnagramSlangs(inputStr) {
             let counts = {};
-            for (let i = 0; i < inputStr.length; i++) { var char = inputStr[i]; counts[char] = (counts[char] || 0) + 1; }
+            for (let i = 0; i < inputStr.length; i++) { let char = inputStr[i]; counts[char] = (counts[char] || 0) + 1; }
             let hFound = []; let rFound = [];
             hardcoreSlangs.forEach(s => {
                 let isM = true; let wC = {};
-                for (let j = 0; j < s.length; j++) { var char = s[j]; wC[char] = (wC[char] || 0) + 1; if (!counts[char] || wC[char] > counts[char]) { isM = false; break; } }
+                for (let j = 0; j < s.length; j++) { let char = s[j]; wC[char] = (wC[char] || 0) + 1; if (!counts[char] || wC[char] > counts[char]) { isM = false; break; } }
                 if (isM) hFound.push(s);
             });
             regularSlangs.forEach(s => {
                 let isM = true; let wC = {};
-                for (let j = 0; j < s.length; j++) { var char = s[j]; wC[char] = (wC[char] || 0) + 1; if (!counts[char] || wC[char] > counts[char]) { isM = false; break; } }
+                for (let j = 0; j < s.length; j++) { let char = s[j]; wC[char] = (wC[char] || 0) + 1; if (!counts[char] || wC[char] > counts[char]) { isM = false; break; } }
                 if (isM) rFound.push(s);
             });
             return { h: hFound, r: rFound };
         }
 
         document.getElementById("solveBtn").addEventListener("click", function() {
-            var input = document.getElementById("jumbleInput").value.trim().toLowerCase();
+            let input = document.getElementById("jumbleInput").value.trim().toLowerCase();
             if (!input) { alert("Please enter some jumbled letters first!"); return; }
             if (input.length > 17) { input = input.substring(0, 17); document.getElementById("jumbleInput").value = input; }
-
-            var container = document.getElementById("resultsContainer");
+            let container = document.getElementById("resultsContainer");
             container.innerHTML = "";
-
-            if (!isDbLoaded) { container.innerHTML = "<div style='color:#00ff00; font-weight:bold;'>Initializing 300,000+ Word Dictionary Node...</div>"; return; }
-
+            if (!isDbLoaded) { container.innerHTML = "<div style='color:#00ff00; font-weight:bold;'>Initializing 300,000+ Word Global Dictionary Node...</div>"; return; }
             let hasWords = false; let kindMatches = []; let goodMatches = {};
-
             for (let l = 7; l >= 2; l--) {
                 let res = findAnagramMatches(input, l);
                 if (res.length > 0) {
@@ -123,14 +118,12 @@
                     });
                 }
             }
-
             if (kindMatches.length > 0) {
                 let uKind = [...new Set(kindMatches)];
                 let kHtml = '<div class="word-group"><div class="group-title" style="color:#00ffff;margin-top:15px;">✨ KIND AND POSITIVE WORDS</div><div>';
                 uKind.forEach(w => { kHtml += '<span class="word-box" style="border-color:#00ffff;color:#00ffff;">' + w + '</span>'; });
                 kHtml += '</div></div>'; container.innerHTML += kHtml;
             }
-
             for (let l = 7; l >= 2; l--) {
                 if (goodMatches[l] && goodMatches[l].length > 0) {
                     let uGood = [...new Set(goodMatches[l])].slice(0, 60);
@@ -139,9 +132,7 @@
                     gHtml += '</div></div>'; container.innerHTML += gHtml;
                 }
             }
-
             if (!hasWords) { container.innerHTML = '<div style="color:#555;font-size:0.9rem;margin-top:15px;">No meaningful words (2-7 letters) formed.</div>'; }
-
             let sData = detectAnagramSlangs(input);
             let oContainer = document.getElementById("offensiveWords");
             oContainer.innerHTML = "";
@@ -150,7 +141,6 @@
                 if (sData.r.length > 0) { [...new Set(sData.r)].forEach(s => { oContainer.innerHTML += '<span class="word-box" style="border-color:#ff3300;color:#ff3300;background:rgba(255,51,0,0.1);font-weight:bold;margin:5px;display:inline-block;">⚠️ SLANG: ' + s.toUpperCase() + '</span>'; }); }
             } else { oContainer.innerHTML = '<span style="color:#555;font-size:0.9rem;">Clean input. No offensive words detected.</span>'; }
         });
-
         window.addEventListener("DOMContentLoaded", fetchScrabbleWords);
     </script>
 </body>
