@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JUMBLEVERSE</title>
+    <style>
+        body { background-color: #0b0c10; color: #ffffff; font-family: sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; }
+        .layout-wrapper { display: flex; width: 100%; max-width: 1600px; margin: 0 auto; }
+        .sidebar-ad-column { width: 160px; min-width: 160px; min-height: 600px; border: 1px dashed #333; text-align: center; color: #555; padding-top: 100px; }
+        .center-content-column { flex-grow: 1; display: flex; flex-direction: column; align-items: center; padding: 0 20px; width: 100%; }
+        .ad-container { width: 100%; min-height: 90px; border: 1px dashed #333; text-align: center; color: #555; margin: 10px 0; }
+        .main-content { width: 100%; max-width: 900px; background: #11141a; border: 2px solid #00ff00; border-radius: 10px; padding: 35px; text-align: center; }
+        h1 { color: #00ff00; font-size: 3rem; font-style: italic; text-transform: uppercase; }
+        .limit-notice { color: #00ff00; font-size: 0.85rem; margin-top: 8px; font-weight: bold; }
+        input[type="text"] { background: #1f232b; border: 1px solid #00ff00; color: #fff; padding: 15px; font-size: 1.1rem; width: 350px; }
+        button { background: transparent; color: #00ff00; border: 2px solid #00ff00; padding: 15px 35px; font-size: 1.1rem; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        button:hover { background: #00ff00; color: #000; }
+        .word-group { margin-bottom: 25px; text-align: left; }
+        .group-title { font-size: 1.1rem; margin-bottom: 10px; font-weight: bold; }
+        .word-box { display: inline-block; background: #1f232b; border: 1px solid #00ff00; color: #00ff00; padding: 8px 15px; margin: 5px; border-radius: 5px; font-weight: bold; }
+        .offensive-section { border: 2px dashed #ff0000; padding: 20px; margin-top: 30px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="layout-wrapper">
+        <div class="sidebar-ad-column" id="left-sidebar-ad">Left Sidebar Ad (160x600)</div>
+        <div class="center-content-column">
+            <div class="ad-container" id="top-ad">Top Small Banner Ad (728x90)</div>
+            <main class="main-content">
+                <h1>JUMBLEVERSE</h1>
+                <div style="margin-bottom: 30px;">
+                    <input type="text" id="jumbleInput" maxlength="17" placeholder="Enter jumbled letters...">
+                    <button id="solveBtn">Solve It</button>
+                    <div class="limit-notice">* MAXIMUM 17 LETTERS ALLOWED</div>
+                </div>
+                <div id="resultsContainer"></div>
+                <div class="offensive-section">
+                    <div style="color: #ff0000; font-weight: bold; margin-bottom: 15px;">HEX OFFENSIVE WORDS DETECTED</div>
+                    <div id="offensiveWords">Clean input. No offensive words detected.</div>
+                </div>
+            </main>
+            <div class="ad-container" id="bottom-ad" style="min-height: 250px;">Bottom Large Banner Ad (300x250)</div>
+        </div>
+        <div class="sidebar-ad-column" id="right-sidebar-ad">Right Sidebar Ad (160x600)</div>
+    </div>
+    <script>
+        // ব্যাকএন্ড এপিআই সার্ভারের সাথে ফ্রন্টঅ্যান্ডের কানেকশন লজিক
+        document.getElementById("solveBtn").addEventListener("click", async function() {
+            var input = document.getElementById("jumbleInput").value.trim().toLowerCase();
+            if(!input) { alert("Please enter letters first!"); return; }
+            var resContainer = document.getElementById("resultsContainer");
+            resContainer.innerHTML = "<div style='color:#00ff00;'>Serverless API Processing 300,000+ Words...</div>";
+            
+            try {
+                // Vercel Serverless Back-end API Call
+                var response = await fetch('/api/solve?input=' + input);
+                var data = await response.json();
+                resContainer.innerHTML = "";
+                
+                if(data.success && data.results) {
+                    // ২ থেকে ৭ অক্ষরের রেজাল্ট ক্যাটাগরি রেন্ডার করা
+                    for(var l = 7; l >= 2; l--) {
+                        if(data.results[l] && data.results[l].length > 0) {
+                            var gHtml = '<div class="word-group"><div class="group-title" style="color:#00ff00;">🟢 ' + l + ' LETTER WORDS</div><div>';
+                            data.results[l].forEach(function(w) { gHtml += '<span class="word-box">' + w + '</span>'; });
+                            gHtml += '</div></div>'; resContainer.innerHTML += gHtml;
+                        }
+                    }
+                }
+                
+                // স্লাং বা আপত্তিকর শব্দ রেন্ডার করা
+                var oContainer = document.getElementById("offensiveWords");
+                oContainer.innerHTML = "";
+                if(data.slangs && data.slangs.length > 0) {
+                    data.slangs.forEach(function(s) {
+                        oContainer.innerHTML += '<span class="word-box" style="border-color:#ff0055;color:#ff0055;">⚠️ SLANG: ' + s.toUpperCase() + '</span>';
+                    });
+                } else { oContainer.innerHTML = "Clean input. No offensive words detected."; }
+            } catch(e) { resContainer.innerHTML = "<div style='color:red;'>API Error</div>"; }
+        });
+    </script>
+</body>
+</html>
