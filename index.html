@@ -54,7 +54,7 @@
             
             try {
                 // Vercel Serverless Back-end API Call
-                var response = await fetch('/api/solve?input=' + input);
+                var response = await fetch('/api/solve.ts?input=' + input);
                 var data = await response.json();
                 resContainer.innerHTML = "";
                 
